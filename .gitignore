@@ -21,6 +21,8 @@ output/
 run_logs/
 handoff/
 figures/
+tables/
+els-cas-templates/
 training_designs/
 BLIND_training_estimates.rds
 

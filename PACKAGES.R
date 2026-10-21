@@ -4,10 +4,11 @@
 # Installs and version-checks the packages the pipeline uses. run_all.R
 # sources it first, so a separate call is not needed for a full run.
 #
-# The pins record the authors' reference environment (R 4.5, Windows 11,
-# fixest 0.14.2). Newer versions usually work; a mismatch prints a note and
-# does not stop the run. Set SKIP_PACKAGE_INSTALL=1 to check without
-# installing.
+# The pins are reference versions. fixest 0.14.2 is the version of the
+# paper's reference run (R 4.5, Windows 11); the others follow the authors'
+# companion package, motherhood-penalty-synthetic-hilda. Newer versions
+# usually work; a mismatch prints a note and does not stop the run. Set
+# SKIP_PACKAGE_INSTALL=1 to check without installing.
 # =============================================================================
 
 # Namespace protection (avoid MASS/stats masking dplyr verbs)
@@ -53,10 +54,13 @@ for (pkg in names(cran_pkgs)) {
   if (!requireNamespace(pkg, quietly = TRUE)) {
     cat(sprintf("  %-13s MISSING\n", pkg)); .missing_pkgs <- c(.missing_pkgs, pkg); next
   }
-  have <- as.character(utils::packageVersion(pkg))
-  want <- cran_pkgs[[pkg]]
-  cat(sprintf("  %-13s %-10s %s\n", pkg, have, if (identical(have, want)) "ok" else
-    sprintf("reference %s", want)))
+  # package_version() reads "0.9-40" and "0.9.40" as the same version.
+  have <- utils::packageVersion(pkg)
+  want <- package_version(cran_pkgs[[pkg]])
+  cat(sprintf("  %-13s %-10s %s\n", pkg, as.character(have),
+              if (have == want) "ok" else if (have > want)
+                sprintf("newer than reference %s", as.character(want)) else
+                  sprintf("OLDER than reference %s", as.character(want))))
 }
 if (length(.missing_pkgs))
   cat("\n  Missing: ", paste(.missing_pkgs, collapse = ", "),

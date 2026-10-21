@@ -64,6 +64,18 @@ OUT_DIR <- if (exists("PROJ_ROOT", envir = globalenv())) {
   Sys.getenv("HILDA_ROOT")
 } else getwd()
 
+# NEVER OVERWRITE THE REAL PANEL. The loader writes the real panel under the
+# same two names, so a synthetic build in the wrong folder would replace it.
+# An existing file is overwritten only if it carries attr(, "synthetic").
+for (.f in file.path(OUT_DIR, c("hilda_panel_data_W12_W24_slim.rds",
+                                "hilda_panel_data_extended.rds"))) {
+  if (file.exists(.f) && !isTRUE(attr(readRDS(.f), "synthetic")))
+    stop(.f, " exists and is not a synthetic panel, so 00b will not ",
+         "overwrite it.\n  Build the synthetic panel in a folder that does not ",
+         "hold the real one.", call. = FALSE)
+}
+rm(.f)
+
 cat(strrep("=", 72), "\n", sep = "")
 cat("  00b_make_synthetic_hilda.R  --  SYNTHETIC DATA (results are not real)\n")
 cat(sprintf("  %s persons, waves 12-24, seed %d\n",
@@ -192,9 +204,9 @@ P$v_e1   <- rnorm(N, 0, 0.09)
 P$w_o1   <- rnorm(N, 0, 0.03)
 P$t_oth  <- rnorm(N, 0, 0.05)
 P$public <- rbern(ifelse(P$female == 1L, 0.30, 0.20))
-P$union  <- rbern(0.20)
-P$selfemp <- rbern(0.08)
-P$selfemp_mum <- rbern(0.05)
+P$union  <- rbern(rep(0.20, N))
+P$selfemp <- rbern(rep(0.08, N))
+P$selfemp_mum <- rbern(rep(0.05, N))
 P$proxy  <- rbern(ifelse(P$female == 1L, 0.044, 0.052))
 P$share  <- clamp(ifelse(P$female == 0L, rnorm(N, 0.93, 0.05),
                          ifelse(P$type == "censored", rnorm(N, 0.72, 0.12),
@@ -557,8 +569,14 @@ G$event_separated <- yn(0.02)
 G$event_job_change <- ifelse(G$job_change == 1, 2, 1)
 G$event_fired     <- yn(ifelse(emp, 0.015, 0.05))
 G$event_moved     <- yn(ifelse(mpost & k == 0, 0.20, 0.12))
-for (cl in c("event_married", "event_separated", "event_fired", "event_moved"))
-  G[[cl]][stats::runif(nG) < 0.015] <- NA
+# The life events come from the self-completion questionnaire, which about
+# one person-wave in seven does not return: the real panel carries
+# event_job_change on 114,695 of its 134,131 person-waves. The items go
+# missing together, as they do when the questionnaire is not returned.
+scq_missing <- stats::runif(nG) < 0.145
+for (cl in c("event_married", "event_separated", "event_job_change",
+             "event_fired", "event_moved"))
+  G[[cl]][scq_missing] <- NA
 G$got_married_this_wave <- ifelse(G$event_married == 2, 1L, 0L)
 G$separated_this_wave   <- ifelse(G$event_separated == 2, 1L, 0L)
 G$changed_job_this_wave <- ifelse(G$event_job_change == 2, 1L, 0L)
@@ -1316,6 +1334,13 @@ f_ext <- file.path(OUT_DIR, "hilda_panel_data_extended.rds")
 saveRDS(ext_sample, f_ext)
 cat(sprintf("Saved %s: %s rows (waves 15-24)\n", f_ext,
             format(nrow(ext_sample), big.mark = ",")))
+
+# The panel was just replaced, so the contract's cached frame is stale. The
+# loader deletes it for the same reason (frame.rds only: ev.rds and the
+# ledger belong to the 03 stage, which rebuilds them).
+f_frame <- file.path(OUT_DIR, "handoff", "frame.rds")
+if (file.exists(f_frame) && isTRUE(file.remove(f_frame)))
+  cat("handoff/frame.rds deleted: the panel was rebuilt, so the cached frame is stale.\n")
 
 roster <- analysis_sample %>%
   dplyr::group_by(person_id) %>%
