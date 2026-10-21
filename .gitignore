@@ -1,0 +1,38 @@
+# =============================================================================
+# .gitignore
+#
+# The repository holds code only. Everything read from the restricted HILDA
+# release, and everything the pipeline writes, stays out of version control.
+# A fresh clone rebuilds all of it: the synthetic panel from a fixed seed by
+# 00b_make_synthetic_hilda.R, and the tables, figures and logs by run_all.R.
+# =============================================================================
+
+# ── Data: restricted (real) and generated (synthetic) panels ─────────────────
+*.rds
+*.dta
+data/raw/*
+!data/raw/README.md
+fte_experience/
+
+# ── Pipeline outputs, registries and logs ────────────────────────────────────
+*.csv
+*.log
+output/
+run_logs/
+handoff/
+figures/
+training_designs/
+BLIND_training_estimates.rds
+
+# ── R session files ──────────────────────────────────────────────────────────
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+.Renviron
+*.RData
+
+# ── Editor and OS files ──────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+~$*
