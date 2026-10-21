@@ -5,7 +5,7 @@
 # sources it first, so a separate call is not needed for a full run.
 #
 # The pins are reference versions. fixest 0.14.2 is the version of the
-# paper's reference run (R 4.5, Windows 11); the others follow the authors'
+# paper's reference run (R 4.5.2, Windows 11); the others follow the authors'
 # companion package, motherhood-penalty-synthetic-hilda. Newer versions
 # usually work; a mismatch prints a note and does not stop the run. Set
 # SKIP_PACKAGE_INSTALL=1 to check without installing.
@@ -47,7 +47,7 @@ if (!identical(Sys.getenv("SKIP_PACKAGE_INSTALL"), "1")) {
   }
 }
 
-cat("\nDependency check (reference run: R 4.5):\n")
+cat("\nDependency check (reference run: R 4.5.2):\n")
 cat(sprintf("  R: installed %s\n", getRversion()))
 .missing_pkgs <- character(0)
 for (pkg in names(cran_pkgs)) {

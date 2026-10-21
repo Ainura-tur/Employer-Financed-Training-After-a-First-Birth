@@ -215,13 +215,13 @@ panels to the repository root. The pipeline then writes derived files under
 
 ### 4.1 Software
 
-The reference results were produced with R 4.5 on Windows 11 x64, with fixest
-0.14.2. `PACKAGES.R` installs and version-checks the CRAN packages: tidyverse,
-fixest, lmtest, sandwich, patchwork, DoubleML, mlr3, mlr3learners, ranger,
-glmnet, grf, lgr, haven and digest. `run_all.R` sources it first. The synthetic
-mode was also tested with R 4.4.3 on Linux, with fixest 0.14.2 and newer
-versions of the other packages, among them mlr3 1.8.0, ranger 0.18.0, glmnet
-5.0 and grf 2.6.1.
+The reference results were produced with R 4.5.2 on Windows 11 x64 (build
+26100), with fixest 0.14.2. `PACKAGES.R` installs and version-checks the CRAN
+packages: tidyverse, fixest, lmtest, sandwich, patchwork, DoubleML, mlr3,
+mlr3learners, ranger, glmnet, grf, lgr, haven and digest. `run_all.R` sources
+it first. The synthetic mode was also tested with R 4.4.3 on Linux, with
+fixest 0.14.2 and newer versions of the other packages, among them mlr3 1.8.0,
+ranger 0.18.0, glmnet 5.0 and grf 2.6.1.
 
 ### 4.2 Controlled randomness
 
