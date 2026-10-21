@@ -750,6 +750,11 @@ rm(.pat, .cand)
 
 # =====================================================================
 # F. THE STABLE-EMPLOYER TEST                               concern 3
+# v-jobchange, 22 October 2026. event_job_change is coded 1 = no, 2 = yes, as the
+# loader stores it. The flag below summed the raw value, so every answered
+# wave after the birth counted as a job change and the arm kept only waves
+# with the item missing. Only a 2 counts now; a missing answer still counts
+# as no change.
 #
 # BLOCK E SAID THIS WAS POSSIBLE, so it is run rather than described.
 # The probe found event_job_change on 114,695 person-waves and
@@ -791,7 +796,7 @@ if (!exists(".ycol") || is.na(.ycol)) .skip(3, "no jttpewt outcome resolved") el
            # moves since the wave BEFORE the birth, so the baseline job is
            # the one held going in
            .moved_flag = if (!is.na(.jc))
-             cumsum(dplyr::coalesce(.data[[.jc]], 0) *
+             cumsum(as.integer(.data[[.jc]] %in% 2) *
                     as.integer(!is.na(.bw) & wave >= .bw)) else NA_real_,
            .tn_drop = if (!is.na(.tn))
              cumsum(as.integer(!is.na(dplyr::lag(.data[[.tn]])) &
@@ -856,7 +861,7 @@ if (!exists(".ycol") || is.na(.ycol)) .skip(3, "no jttpewt outcome resolved") el
     .gev <- .gev %>% arrange(person_id, wave) %>% group_by(person_id) %>%
       mutate(post = as.integer(!is.na(.bw) & wave >= .bw),
              .moved_flag = if (.jc_ev)
-               cumsum(dplyr::coalesce(.data[[.jc]], 0) *
+               cumsum(as.integer(.data[[.jc]] %in% 2) *
                       as.integer(!is.na(.bw) & wave >= .bw)) else NA_real_,
              .tn_drop = if (.tn_ev)
                cumsum(as.integer(!is.na(dplyr::lag(.data[[.tn]])) &
