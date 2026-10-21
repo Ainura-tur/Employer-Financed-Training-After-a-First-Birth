@@ -251,8 +251,13 @@ RAM. It took about 13 minutes:
 Timings vary with load: an earlier run on the same machine, with other work
 running, took about 20 minutes. Peak memory was about 4 GB, in the master.
 The real panel has about three times as many person-waves as the default
-synthetic one (134,131 against 43,153), so it needs more. `SYNTH_FULL=1`
-takes much longer, mostly in 03c's random-forest arms.
+synthetic one (134,131 against 43,153), so it needs more.
+
+`SYNTH_FULL=1` takes much longer, mostly in 03c. The default run fits 03c's
+twenty arms by lasso with 2 folds and 1 repetition. Fitted with random forests,
+as in the paper, at 2 folds and 1 repetition, 03c took 6 minutes on the same
+machine. The published 5 folds and 3 repetitions fit 7.5 times as many forests
+on larger folds, so expect roughly an hour and a quarter for 03c alone.
 
 ---
 
