@@ -396,6 +396,15 @@ They are marked `v-runtime, 22 October 2026` and change no result.
 | `RUN_ALL.R` | declares 03c at 100 minutes instead of 1000, so it prints "(about 100 min)" when the stage starts. Its notes and console message no longer say sixteen hours: they give 100 minutes for 03c and about three hours for the full pass |
 | `FINAL_PASS.R` | a note set stage 02's three minutes against "03c's thousand"; it now says hundred |
 
+Two edits put the last British spellings in the generated tables into US
+spelling, to match the paper. They are marked `v-usspell, 22 October 2026` and
+`v-usspell-e1, 22 October 2026` and change no result.
+
+| File | Edit |
+| --- | --- |
+| `05_review_response.R` | the R16 notes for Online Appendix Tables I5 to I8 say "percent" and "centered" instead of "per cent" and "centred" |
+| `paper_tables.R` | Online Appendix Table E1 labels its two study rows "study enrollment" instead of "study enrolment". The label for `T9_study_gap` is set in `LEDGER_ARM_LABELS`, so 03a and the ledger are unchanged |
+
 ---
 
 ## 6. Instructions to replicators

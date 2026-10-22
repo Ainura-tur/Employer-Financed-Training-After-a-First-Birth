@@ -1,4 +1,5 @@
 # =============================================================================
+# v-usspell-e1, 22 October 2026: US spelling in Table E1's two study rows (fix_us_spelling_e1.R).
 # v-ledger-trwin, 19 October: LEDGER_ARM_LABELS (apply_ledger_trwin.R).
 # paper_tables.R   (was appendix_tables.R, and before that two scripts)
 #
@@ -1144,7 +1145,11 @@ LEDGER_ARM_LABELS <- c(
   "T6_couple_x_wave"          = "within-couple gap, couple-by-wave effects",
   "T7_birthwave_gap"          = "the first birth wave, women less men",
   "T7_pregnancy_men"          = "pregnancy wave, men's own coefficient",
-  "T9_study_vs_training"      = "study enrolment against training, triple difference")
+  # v-usspell-e1, 22 October 2026. US spelling, as in the text. T9_study_gap
+  # printed the ledger's own label from 03a; mapping it here changes the table
+  # and leaves 03a and the ledger as they are.
+  "T9_study_gap"              = "study enrollment, women less men, post-birth",
+  "T9_study_vs_training"      = "study enrollment against training, triple difference")
 
 build_ledger_table <- function() {
   led <- read_csv_if("training_ledger.csv")

@@ -1,4 +1,5 @@
 # =============================================================================
+# v-usspell, 22 October 2026: US spelling in the R16 table notes (fix_us_spelling_05.R).
 # v-notes-trwin13, 19 October: R16 notes for Tables I.1 and I.3 (apply_notes_trwin13.R).
 # 05_review_response.R  -  estimates requested by the pre-submission review
 #
@@ -2504,7 +2505,7 @@ rr_block("R16: appendix tables for the post-hoc analyses", local({
         "\\cmidrule(lr){2-3} \\cmidrule(lr){5-6}",
         " & All years & From year 2 & All years & All years & From year 2 \\\\"),
       rows,
-      paste0("All employed person-waves, mothers minus fathers. Panel A uses the calendar's per cent ",
+      paste0("All employed person-waves, mothers minus fathers. Panel A uses the calendar's percent ",
              "of the last financial year spent in a job (capj), which counts leave as time in a job. ",
              "Panel B uses days of paid parental, family and bereavement leave and of unpaid leave in ",
              "the last twelve months, the training items' window. The restricted rows select on an ",
@@ -2552,7 +2553,7 @@ rr_block("R16: appendix tables for the post-hoc analyses", local({
         "\\cmidrule(lr){2-3} \\cmidrule(lr){4-5}",
         " & All years & From year 2 & All years & From year 2 \\\\"),
       rows,
-      paste0("Employed person-waves. HILDA asks employees the per cent chance, over the next twelve ",
+      paste0("Employed person-waves. HILDA asks employees the percent chance, over the next twelve ",
              "months, of leaving the job voluntarily (C25), losing it (C26) and finding and accepting ",
              "a job at least as good (C27); rescaled to probabilities. Panel B splits mothers at the ",
              "median of their average pre-birth chance of leaving",
@@ -2560,7 +2561,7 @@ rr_block("R16: appendix tables for the post-hoc analyses", local({
                thr$mothers_expecting_to_stay[1], " and ", thr$mothers_expecting_to_leave[1], " mothers)") else "",
              "; each group is compared with all fathers, and the proportional fall uses the group's own ",
              "pre-birth rate; the proportional column is from year 2. The last row keeps mothers' post-birth waves only where they put their ",
-             "chance of leaving at 10 per cent or less, which selects on an answer given after the ",
+             "chance of leaving at 10 percent or less, which selects on an answer given after the ",
              "birth. Stated chances describe mothers who remained employed. Standard errors clustered ",
              "by person. Post hoc."),
       "lcccc", size = "\\footnotesize")
@@ -2628,7 +2629,7 @@ rr_block("R16: appendix tables for the post-hoc analyses", local({
              "The share is the part of the birth wave's twelve-month reference period that followed ",
              "the birth, from the birth quarter. Time away predicts a birth-wave fall that grows with ",
              "the share and a next-wave fall that shrinks with it. The slope row comes from a model ",
-             "linear in the share, centred at 0.5. The slopes are contrasts among mothers, so a ",
+             "linear in the share, centered at 0.5. The slopes are contrasts among mothers, so a ",
              "pre-birth trend common to all mothers in the comparison with never-mothers leaves ",
              "them unchanged; the levels carry it. Standard errors clustered by person. Post hoc."),
       "lcccc")
@@ -2654,9 +2655,9 @@ rr_block("R16: appendix tables for the post-hoc analyses", local({
       paste0("Women only, mothers against never-mothers, person and wave effects, employed ",
              "person-waves. Wanting more hours is the survey's preferred-hours question. ",
              if (!is.null(psh) && nrow(psh)) paste0(sprintf("%.0f", 100 * psh$share_wanting_more_hours[1]),
-               " per cent of mothers' part-time waves after the birth want more hours, against ",
+               " percent of mothers' part-time waves after the birth want more hours, against ",
                sprintf("%.0f", 100 * psh$share_wanting_more_hours[2]),
-               " per cent of never-mothers' part-time waves. ") else "",
+               " percent of never-mothers' part-time waves. ") else "",
              "The extra rows are contrasts among mothers' own waves, so a pre-birth trend common ",
              "to all mothers in the comparison with never-mothers leaves them unchanged. ",
              "Proportional contrast against own time at any place, bases treated as known. ",
