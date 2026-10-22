@@ -297,7 +297,8 @@ if (exists("td_forget", mode = "function")) td_forget() else
 # declines to vouch for.
 #
 # THREE THINGS MAKE IT FREE. It is declared at three minutes against 03c's
-# thousand. It writes an addendum and ten csvs and does not touch the panel,
+# hundred (v-runtime, 22 October 2026). It writes an addendum and ten
+# csvs and does not touch the panel,
 # so no count in the manuscript can move because it ran. And it is not one of
 # LEDGER_CONTRIBUTORS, which is the four 03 and 04 stages, so adding it
 # leaves .full_ledger TRUE and the reset still fires.

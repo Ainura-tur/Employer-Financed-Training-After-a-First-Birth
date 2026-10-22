@@ -233,9 +233,12 @@ and each bootstrap sets its seed where it runs.
 
 ### 4.3 Memory and runtime
 
-A full real-data pass takes about sixteen hours, most of it in 03c's twenty DML
-arms. Peak memory on the real data was not recorded. A workstation with at
-least 16 GB of RAM is recommended.
+On the real data, 03c is the longest stage by far: its twenty DML arms take
+about 100 minutes at the published settings. The bootstraps in the referee
+stage, 05 and 06 take up to about half an hour each, and the other stages take
+minutes, so a full real-data pass takes a few hours. Peak memory on the real
+data was not recorded. A workstation with at least 16 GB of RAM is
+recommended.
 
 The default synthetic run was timed from a fresh copy of the repository, with
 the packages already installed, on a Linux machine with two cores and 7 GB of
@@ -258,7 +261,10 @@ synthetic one (134,131 against 43,153), so it needs more.
 twenty arms by lasso with 2 folds and 1 repetition. Fitted with random forests,
 as in the paper, at 2 folds and 1 repetition, 03c took 6 minutes on the same
 machine. The published 5 folds and 3 repetitions fit 7.5 times as many forests
-on larger folds, so expect roughly an hour and a quarter for 03c alone.
+on larger folds, so expect roughly an hour and a quarter for 03c alone. On that
+machine the forests ran on one thread. 03c gives them one thread fewer than the
+machine has cores, up to four, unless `MASTER_HH_THREADS` sets the number, so a
+machine with more cores runs it faster.
 
 ---
 
@@ -382,6 +388,13 @@ is marked `v-jobchange, 22 October 2026`.
 | --- | --- |
 | `REFEREE_RUN.R` | block F counted every answered job-change item as a job change, because the loader codes the item 1 = no and 2 = yes; it now counts only a 2. This changes the job-change arm in Online Appendix F.1 |
 
+Two more edits correct the run time that the authors' drivers give for 03c.
+They are marked `v-runtime, 22 October 2026` and change no result.
+
+| File | Edit |
+| --- | --- |
+| `RUN_ALL.R` | declares 03c at 100 minutes instead of 1000, so it prints "(about 100 min)" when the stage starts. Its notes and console message no longer say sixteen hours: they give 100 minutes for 03c and about three hours for the full pass |
+| `FINAL_PASS.R` | a note set stage 02's three minutes against "03c's thousand"; it now says hundred |
 
 ---
 

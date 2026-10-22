@@ -28,7 +28,7 @@
 # nothing errors and the output looks like output. Checking a handful of
 # invariants per stage catches it in the minute it happens.
 #
-#   Rscript RUN_ALL.R                 everything, ~14 hours (03c is 16)
+#   Rscript RUN_ALL.R                 everything, ~3 hours (03c ~100 min)
 #   Rscript RUN_ALL.R fast            everything except 03c and REFEREE
 #   Rscript RUN_ALL.R 03a 03b 04      named stages only
 #   Rscript RUN_ALL.R verify          the checking pass alone
@@ -137,7 +137,7 @@ STAGES <- list(
          # pre-birth base 0.2981. The persons match the loader's v21.49
          # roster of 10,838. halt_on: a different sample means 03a read a
          # stale frame or a stale handoff/ev.rds, so the pass stops here
-         # rather than let 03c spend sixteen hours on it.
+         # rather than let 03c spend 100 minutes on it.
          # v-screen: without the screen, 68,361 and 10,902 (screen_audit.R).
          "event sample"      = .by_screen("67,783 person-waves, 10,838 persons",
                                           "68,361 person-waves, 10,902 persons"),
@@ -180,7 +180,9 @@ STAGES <- list(
          "stacked cell"      = "114,364 person-wave-sources, 9,925 persons",
          "ledger rows"       = "contributes [0-9]+ ledger rows")),
 
-  list(id = "03c", script = "03c_experience_units.R", mins = 1000, slow = TRUE,
+  # v-runtime, 22 October 2026. About 100 minutes on the real data at the
+  # published settings. This said 1000, and the notes sixteen hours.
+  list(id = "03c", script = "03c_experience_units.R", mins = 100, slow = TRUE,
        log = "^03c_experience_units_",
        expect = list(
          "slow learner"      = "learner: ranger",
@@ -383,7 +385,7 @@ VERIFY <- c("reconcile", "tables", "verify", "counts")
 #
 # NO ARGUMENTS MEANS EVERYTHING ONLY FROM A TERMINAL. Sourced
 # interactively with nothing set, this file used to read commandArgs() as
-# empty and start the full pass, which includes a sixteen-hour 03c. A
+# empty and start the full pass, which includes a 100-minute 03c. A
 # driver whose least deliberate invocation is also its most expensive is
 # a trap, so the interactive path refuses and prints the options instead.
 .args <- commandArgs(trailingOnly = TRUE)
@@ -395,7 +397,7 @@ if (!length(.spec) && interactive()) {
   cat("  RUN_STAGES <- \"verify\" the checking pass alone\n")
   cat("  RUN_STAGES <- \"all\"    the full pass, including 03c\n")
   cat("  RUN_STAGES <- ", deparse(vapply(STAGES, `[[`, "", "id")), "\n", sep = "")
-  cat("\nThe full pass takes about sixteen hours, so it is not the default\n")
+  cat("\nThe full pass takes about three hours, so it is not the default\n")
   cat("for a source() with nothing set.\n")
   stop("no stages selected", call. = FALSE)
 }
@@ -564,7 +566,7 @@ if (nrow(.moved)) {
 # v-screen, 14 October. RUN_ALL_MOVED_OK <- TRUE lets a caller go on past
 # checks that moved AS EXPECTED, and only those; a failed check still stops
 # it. It is for the first FINAL_PASS.R without the screen, where 03c's new
-# value cannot be known before the sixteen hours it takes to produce it.
+# value cannot be known before the 100 minutes it takes to produce it.
 if (.n_moved > 0L && isTRUE(get0("RUN_ALL_MOVED_OK", ifnotfound = FALSE)))
   cat("\nRUN_ALL_MOVED_OK is TRUE, so the ", .n_moved, " moved check(s) above\n",
       "do not stop the caller. Re-baseline them before the next pass.\n",
