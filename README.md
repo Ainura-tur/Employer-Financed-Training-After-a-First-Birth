@@ -233,12 +233,16 @@ and each bootstrap sets its seed where it runs.
 
 ### 4.3 Memory and runtime
 
-On the real data, 03c is the longest stage by far: its twenty DML arms take
-about 100 minutes at the published settings. The bootstraps in the referee
-stage, 05 and 06 take up to about half an hour each, and the other stages take
-minutes, so a full real-data pass takes a few hours. Peak memory on the real
-data was not recorded. A workstation with at least 16 GB of RAM is
-recommended.
+On the real data, 03c is the longest stage by far. On 22 October 2026, on the
+reference machine (Section 4.1) at the published settings, its twenty DML arms
+took 103 and 110 minutes in two runs, with the forests on four threads. 05
+took 51 minutes, most of it in its two bootstraps. The master took 11 minutes,
+06 took 8 and the referee stage 5. Every other stage took under a minute. All
+seventeen stages of `RUN_ALL.R` took 2 hours 18 minutes. A full pass through
+`run_all.R` adds 05 and two stages that were not timed, the Wave 24 check and
+`Pre_analysis_diagnostics2.R`, so it takes a little over three hours. Peak
+memory on the real data was not recorded. A workstation with at least 16 GB of
+RAM is recommended.
 
 The default synthetic run was timed from a fresh copy of the repository, with
 the packages already installed, on a Linux machine with two cores and 7 GB of
@@ -404,6 +408,14 @@ spelling, to match the paper. They are marked `v-usspell, 22 October 2026` and
 | --- | --- |
 | `05_review_response.R` | the R16 notes for Online Appendix Tables I5 to I8 say "percent" and "centered" instead of "per cent" and "centred" |
 | `paper_tables.R` | Online Appendix Table E1 labels its two study rows "study enrollment" instead of "study enrolment". The label for `T9_study_gap` is set in `LEDGER_ARM_LABELS`, so 03a and the ledger are unchanged |
+
+Two edits bring `RUN_ALL.R` up to date with the authors' first full pass
+without the experience screen, on 22 October 2026. They change no result.
+
+| Marker | Edit |
+| --- | --- |
+| `v-rebaseline-unscreened` | six checks on 02, 03a, 03b and 03c still held values from the screened sample, so a full real pass stopped and asked for a re-baseline. Each check now carries the value from that pass's logs beside the screened one, which `TD_SCREEN=on` still uses, and `EXPECTED_TO_MOVE` is empty |
+| `v-runtime2` | each stage's declared minutes are the times measured on that pass, rounded up: 03c 110, master 11, 06 8, referee 5 and every other stage 1. Its notes and console message give about two and a half hours for its full pass |
 
 ---
 

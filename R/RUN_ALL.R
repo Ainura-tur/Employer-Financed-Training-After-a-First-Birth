@@ -28,7 +28,7 @@
 # nothing errors and the output looks like output. Checking a handful of
 # invariants per stage catches it in the minute it happens.
 #
-#   Rscript RUN_ALL.R                 everything, ~3 hours (03c ~100 min)
+#   Rscript RUN_ALL.R                 everything, ~2.5 hours (03c ~110 min)
 #   Rscript RUN_ALL.R fast            everything except 03c and REFEREE
 #   Rscript RUN_ALL.R 03a 03b 04      named stages only
 #   Rscript RUN_ALL.R verify          the checking pass alone
@@ -96,6 +96,8 @@ dir.create(LOGS, showWarnings = FALSE, recursive = TRUE)
 .SCREEN_ON <- identical(tolower(trimws(Sys.getenv("TD_SCREEN", "off"))), "on")
 .by_screen <- function(on, off) if (.SCREEN_ON) on else off
 
+# v-rebaseline-unscreened, 22 October 2026 (fix_runall_rebaseline.R).
+# v-runtime2, 22 October 2026: stage minutes as measured on that day's full pass (fix_runall_times.R).
 STAGES <- list(
   # v21.49. ever_parent counts own children only and educ_years is a
   # running maximum, so the parenthood counts moved. These values come
@@ -122,12 +124,17 @@ STAGES <- list(
                    "firm_size filled", "own-child rule", "education rules",
                    "v21.49 roster")),
 
-  list(id = "02", script = "02fte_experience.R", mins = 3,
+  list(id = "02", script = "02fte_experience.R", mins = 1,
        log = "^02fte_experience_",
        expect = list(
-         "addendum rows"     = "129,325 rows, 26 columns",
-         "dropped for weight"= "219 person-waves",
-         "gap credit"        = "-0\\.0457")),
+         # v-rebaseline-unscreened, 22 October 2026: the unscreened values,
+         # from the 02 log of 22 October 12:10. The screened ones stay first.
+         "addendum rows"     = .by_screen("129,325 rows, 26 columns",
+                                          "Wrote panel_fte_addendum\\.rds: 133,911 rows, 26 columns"),
+         "dropped for weight"= .by_screen("219 person-waves",
+                                          "so 220 person-waves that"),
+         "gap credit"        = .by_screen("-0\\.0457",
+                                          "Difference, women less men: -0\\.0486 years"))),
 
   list(id = "03a", script = "03a_design_audit.R", mins = 1,
        log = "^03a_design_audit_",
@@ -137,11 +144,14 @@ STAGES <- list(
          # pre-birth base 0.2981. The persons match the loader's v21.49
          # roster of 10,838. halt_on: a different sample means 03a read a
          # stale frame or a stale handoff/ev.rds, so the pass stops here
-         # rather than let 03c spend 100 minutes on it.
+         # rather than let 03c spend 110 minutes on it.
          # v-screen: without the screen, 68,361 and 10,902 (screen_audit.R).
          "event sample"      = .by_screen("67,783 person-waves, 10,838 persons",
                                           "68,361 person-waves, 10,902 persons"),
-         "base rates"        = "0\\.2980",
+         # v-rebaseline-unscreened, 22 October 2026: women's pre-birth row,
+         # 3,080 employed person-waves at 0.2977 (03a log of 22 October 12:11).
+         "base rates"        = .by_screen("0\\.2980",
+                                          "(?m)^ +1 +3080 +0\\.2977 +0\\.0718"),
          "T0b written"       = "T0b_missingness_by_group\\.csv",
          # NOT THE COUNT. 28 was August; 03a contributes 33 since the age
          # fixed-effects work. Confirms the stage printed its ledger line;
@@ -177,16 +187,21 @@ STAGES <- list(
        log = "^03b_fee_descriptives_",
        expect = list(
          # v21.49. Was 112,618 person-wave-sources and 9,756 persons.
-         "stacked cell"      = "114,364 person-wave-sources, 9,925 persons",
+         # v-rebaseline-unscreened, 22 October 2026 (03b log of 22 October 12:11).
+         "stacked cell"      = .by_screen("114,364 person-wave-sources, 9,925 persons",
+                                          "114,542 person-wave-sources, 9,948 persons"),
          "ledger rows"       = "contributes [0-9]+ ledger rows")),
 
   # v-runtime, 22 October 2026. About 100 minutes on the real data at the
   # published settings. This said 1000, and the notes sixteen hours.
-  list(id = "03c", script = "03c_experience_units.R", mins = 100, slow = TRUE,
+  # v-runtime2, 22 October 2026: 110.2 minutes on the full pass of that day.
+  list(id = "03c", script = "03c_experience_units.R", mins = 110, slow = TRUE,
        log = "^03c_experience_units_",
        expect = list(
          "slow learner"      = "learner: ranger",
-         "gap credit"        = "0\\.0764",
+         # v-rebaseline-unscreened, 22 October 2026 (03c log of 22 October 12:11).
+         "gap credit"        = .by_screen("0\\.0764",
+           "Mean credit: men \\+0\\.0755 years, women \\+0\\.0584, difference -0\\.0171"),
          "arms registered"   = "20 arms added to the ledger",
          "ledger rows"       = "contributes [0-9]+ ledger rows")),
 
@@ -212,7 +227,7 @@ STAGES <- list(
          # in one place.
          "ledger rows"       = "Ledger: [0-9]+ rows")),
 
-  list(id = "master", script = "MASTER_training_y.R", mins = 5,
+  list(id = "master", script = "MASTER_training_y.R", mins = 11,
        log = "^MASTER_training_",
        expect = list(
          # v21.49, ANCHORED. The old "A5 errors" pattern, the bare number
@@ -240,7 +255,7 @@ STAGES <- list(
   # "verdicts written" needs the "wrote" line. The bare file name also
   # appears in the list the script prints at the end, whether or not the
   # file was written, so it passed even when nothing was written.
-  list(id = "referee", script = "REFEREE_RUN.R", mins = 30, slow = TRUE,
+  list(id = "referee", script = "REFEREE_RUN.R", mins = 5, slow = TRUE,
        log = "^REFEREE_RUN_",
        expect = list(
          "bootstrap size"    = "1000 of 1000 replicates usable",
@@ -255,7 +270,7 @@ STAGES <- list(
   #
   # Each check is anchored at the start of an output line, so code that
   # source(echo = TRUE) prints cannot satisfy it.
-  list(id = "robust", script = "robust_30_49.R", mins = 5,
+  list(id = "robust", script = "robust_30_49.R", mins = 1,
        log = "^robust_30_49_",
        expect = list(
          "reproduces"      = "(?m)^  all full-window fits reproduce the published values\\.",
@@ -263,12 +278,12 @@ STAGES <- list(
 
   # referee8 needs its revision of 5 October: the contract loaded when the
   # session lacks it, and the roster default moved to v21.49's 10,838.
-  list(id = "referee8", script = "referee8_couple_clustering.R", mins = 10,
+  list(id = "referee8", script = "referee8_couple_clustering.R", mins = 1,
        log = "^referee8_couple_clustering_",
        expect = list(
          "roster"          = "(?m)^  matches 03a's roster\\.",
          "summary written" = "(?m)^  wrote referee8_summary\\.csv")),
-  list(id = "06", script = "06_revision_inference.R", mins = 25,
+  list(id = "06", script = "06_revision_inference.R", mins = 8,
        log = "^06_revision_inference_",
        expect = list("headline" = "(?m)^  REPRODUCED: the headline gap",
                      "wage"     = "(?m)^  REPRODUCED: the wage window",
@@ -278,7 +293,7 @@ STAGES <- list(
   # reproduces CS_event_study.R's post-birth averages on the rule in force
   # and then fits the same models on the other sample. Its csvs in
   # output/diagnostics hold the numbers the appendix gives for the screen.
-  list(id = "screen", script = "screen_audit.R", mins = 2,
+  list(id = "screen", script = "screen_audit.R", mins = 1,
        log = "^screen_audit_",
        expect = list(
          "reproduces" = "(?m)^  every fit on the rule in force reproduces the published value\\.",
@@ -287,7 +302,7 @@ STAGES <- list(
   # v-unscreened-values, 18 October. THE CONTRACT FIRST. Without it the figures stage resolved
   # FIGDIR to the old figures/ folder on 16 October, so the paper kept its
   # previous figures. `pre` is code the child runs before the stage script.
-  list(id = "figures", script = "RUN_FIGURES_PAPER.R", mins = 3,
+  list(id = "figures", script = "RUN_FIGURES_PAPER.R", mins = 1,
        pre = 'source("00_contract.R"); ',
        log = "^RUN_FIGURES_PAPER_", expect = list()),
 
@@ -304,7 +319,7 @@ STAGES <- list(
   # The verifier needs the contract for its folders and vm_settings.R for the
   # accepted literals and confirmed fractions; on 16 October it ran without
   # both and scanned 2 folders of 5.
-  list(id = "verify", script = "verify_manuscript_numbers.R", mins = 2,
+  list(id = "verify", script = "verify_manuscript_numbers.R", mins = 1,
        pre = 'source("00_contract.R"); source("vm_settings.R"); ',
        log = "^verify_manuscript_", expect = list()),
 
@@ -352,9 +367,10 @@ STAGES <- list(
 # now carry their unscreened values in STAGES, and RECONCILE_COUNTS passes 15
 # of 15 on the unscreened text, so those four names leave this list. The
 # checks below still await a first unscreened log of their stage.
-EXPECTED_TO_MOVE <- if (.SCREEN_ON) character(0) else c(
-  "02: addendum rows", "02: dropped for weight", "02: gap credit",
-  "03a: base rates", "03b: stacked cell", "03c: gap credit")
+# v-rebaseline-unscreened, 22 October 2026. The six checks above now carry
+# their unscreened values in STAGES, read from the logs of the 22 October
+# pass, so the list is empty again.
+EXPECTED_TO_MOVE <- character(0)
 
 # A name that matches no check would excuse nothing, and a halt_on name
 # that matches no check would never halt. Either is a typo, so stop.
@@ -385,7 +401,7 @@ VERIFY <- c("reconcile", "tables", "verify", "counts")
 #
 # NO ARGUMENTS MEANS EVERYTHING ONLY FROM A TERMINAL. Sourced
 # interactively with nothing set, this file used to read commandArgs() as
-# empty and start the full pass, which includes a 100-minute 03c. A
+# empty and start the full pass, which includes a 110-minute 03c. A
 # driver whose least deliberate invocation is also its most expensive is
 # a trap, so the interactive path refuses and prints the options instead.
 .args <- commandArgs(trailingOnly = TRUE)
@@ -397,7 +413,7 @@ if (!length(.spec) && interactive()) {
   cat("  RUN_STAGES <- \"verify\" the checking pass alone\n")
   cat("  RUN_STAGES <- \"all\"    the full pass, including 03c\n")
   cat("  RUN_STAGES <- ", deparse(vapply(STAGES, `[[`, "", "id")), "\n", sep = "")
-  cat("\nThe full pass takes about three hours, so it is not the default\n")
+  cat("\nThe full pass takes about two and a half hours, so it is not the default\n")
   cat("for a source() with nothing set.\n")
   stop("no stages selected", call. = FALSE)
 }
@@ -566,7 +582,7 @@ if (nrow(.moved)) {
 # v-screen, 14 October. RUN_ALL_MOVED_OK <- TRUE lets a caller go on past
 # checks that moved AS EXPECTED, and only those; a failed check still stops
 # it. It is for the first FINAL_PASS.R without the screen, where 03c's new
-# value cannot be known before the 100 minutes it takes to produce it.
+# value cannot be known before the 110 minutes it takes to produce it.
 if (.n_moved > 0L && isTRUE(get0("RUN_ALL_MOVED_OK", ifnotfound = FALSE)))
   cat("\nRUN_ALL_MOVED_OK is TRUE, so the ", .n_moved, " moved check(s) above\n",
       "do not stop the caller. Re-baseline them before the next pass.\n",
