@@ -5,10 +5,13 @@
 # sources this file first. Each pipeline stage then runs in its own R process
 # and inherits the environment variables set here.
 #
-# Run contract: run everything from the repository root. The pipeline's
-# 00_contract.R resolves every path from PROJ_ROOT, which it reads from the
-# HILDA_ROOT environment variable; this file points HILDA_ROOT at the
-# repository, and stops if HILDA_ROOT already names another folder.
+# Layout: run_all.R, this file and PACKAGES.R sit at the repository root, and
+# the pipeline sits in R/. The authors' scripts source one another by bare
+# file name and keep their outputs beside them, so every stage runs with R/
+# as its working directory, as it did in the authors' project folder. The
+# pipeline's 00_contract.R resolves every path from PROJ_ROOT, which it reads
+# from the HILDA_ROOT environment variable; this file points HILDA_ROOT at
+# R/, and stops if HILDA_ROOT already names another folder.
 # =============================================================================
 
 # Namespace protection (avoid MASS/stats masking dplyr verbs)
@@ -19,7 +22,11 @@ summarise <- dplyr::summarise; summarize <- dplyr::summarize
 arrange   <- dplyr::arrange;   count     <- dplyr::count
 lag       <- dplyr::lag
 
-REPO_ROOT <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
+REPO_ROOT    <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
+PIPELINE_DIR <- file.path(REPO_ROOT, "R")
+if (!file.exists(file.path(PIPELINE_DIR, "00_contract.R")))
+  stop("config.R: no R/00_contract.R under ", REPO_ROOT, ". Source config.R from ",
+       "the repository root, as run_all.R does.", call. = FALSE)
 
 # ── Data mode ────────────────────────────────────────────────────────────────
 # "synthetic" (default): 00b_make_synthetic_hilda.R writes a synthetic panel
@@ -36,18 +43,18 @@ Sys.setenv(DATA_MODE = DATA_MODE)
 
 # ── Project root for the pipeline's contract ─────────────────────────────────
 # 00_contract.R stops when the working directory holds 00_contract.R but
-# PROJ_ROOT names another folder. run_all.R always runs from this folder, so
-# a HILDA_ROOT that names another one cannot work, and it is stopped here,
-# before the generator could write a panel into that folder.
+# PROJ_ROOT names another folder. run_all.R always runs the stages from R/,
+# so a HILDA_ROOT that names another folder cannot work, and it is stopped
+# here, before the generator could write a panel into that folder.
 .hr <- Sys.getenv("HILDA_ROOT")
 if (!nzchar(.hr)) {
-  Sys.setenv(HILDA_ROOT = REPO_ROOT)
+  Sys.setenv(HILDA_ROOT = PIPELINE_DIR)
 } else if (!identical(tolower(sub("/+$", "", normalizePath(.hr, winslash = "/", mustWork = FALSE))),
-                      tolower(sub("/+$", "", REPO_ROOT)))) {
-  stop("config.R: HILDA_ROOT is set to ", .hr, ", not this repository (",
-       REPO_ROOT, ").\n  run_all.R runs the pipeline from this folder, and ",
+                      tolower(sub("/+$", "", PIPELINE_DIR)))) {
+  stop("config.R: HILDA_ROOT is set to ", .hr, ", not this repository's R/ folder (",
+       PIPELINE_DIR, ").\n  run_all.R runs the pipeline from R/, and ",
        "00_contract.R stops when the two differ.\n  Unset HILDA_ROOT, or run ",
-       "the copy of run_all.R in the folder it names.", call. = FALSE)
+       "the copy of run_all.R whose R/ folder it names.", call. = FALSE)
 }
 rm(.hr)
 

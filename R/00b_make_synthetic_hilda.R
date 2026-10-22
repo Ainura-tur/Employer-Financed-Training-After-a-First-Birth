@@ -29,13 +29,13 @@
 # They do NOT reproduce any published number. Every reported result needs
 # the real HILDA release. The panel carries attr(, "synthetic") = TRUE.
 #
-# Usage, from the repository root:
+# run_all.R runs it from R/. To run it alone, from R/:
 #   Rscript 00b_make_synthetic_hilda.R                # 6,000 persons
 #   N_PERSONS=12000 Rscript 00b_make_synthetic_hilda.R
 #   SYNTH_SEED=7 Rscript 00b_make_synthetic_hilda.R   # a different draw
 #
 # The files go where the loader puts them: PROJ_ROOT when 00_contract.R is
-# loaded, else HILDA_ROOT when set, else the working directory.
+# loaded, else HILDA_ROOT when set, else the working directory (R/).
 # =============================================================================
 
 suppressPackageStartupMessages({

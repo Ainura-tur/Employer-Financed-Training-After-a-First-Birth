@@ -26,8 +26,13 @@
 # (robust, referee8, 06, screen, figures, tables, verify, counts), whose
 # checks compare every stage's log with the verified run.
 #
-# Each stage writes its own log to run_logs/; this script also keeps each
-# stage's console in run_logs/run_all_<stage>_console.log.
+# LAYOUT. The pipeline sits in R/ and every stage runs with R/ as its working
+# directory, because the authors' scripts source one another by bare file
+# name and write their outputs beside them. So the panels, output/,
+# handoff/, run_logs/ and els-cas-templates/ all appear under R/, and
+# .gitignore keeps them out of the repository. The panel check lives in
+# tests/. Each stage writes its own log to R/run_logs/; this script also
+# keeps each stage's console in R/run_logs/run_all_<stage>_console.log.
 # =============================================================================
 
 # ── Resolve this file's folder and use it as the working directory ───────────
@@ -46,6 +51,10 @@ cat(sprintf("Working directory: %s\n", getwd()))
 cat("\n==== PACKAGES.R ====\n")
 source("PACKAGES.R")
 source("config.R")
+
+# ── Every stage runs from R/ ─────────────────────────────────────────────────
+setwd(PIPELINE_DIR)
+cat(sprintf("Pipeline folder: %s\n", getwd()))
 
 RSCRIPT <- file.path(R.home("bin"),
                      if (.Platform$OS.type == "windows") "Rscript.exe" else "Rscript")
@@ -77,7 +86,7 @@ PANEL <- "hilda_panel_data_W12_W24_slim.rds"
 # ═════════════════════════════════════════════════════════════════════════════
 if (DATA_MODE == "real") {
   for (f in c("RUN_ALL.R", "FINAL_PASS.R", "LOADING_ND3_v3.R"))
-    if (!file.exists(f)) stop("Real mode needs ", f, " in the repository root.", call. = FALSE)
+    if (!file.exists(f)) stop("Real mode needs ", f, " in R/.", call. = FALSE)
   if (!file.exists(PANEL)) {
     cat("\n==== Building the panel from the restricted release (loader) ====\n")
     RUN_STAGES <- "loader"
@@ -117,9 +126,9 @@ if (!file.exists(PANEL) || identical(Sys.getenv("SYNTH_REBUILD"), "1")) {
 } else {
   cat("  ", PANEL, " is on disk; SYNTH_REBUILD=1 rebuilds it.\n", sep = "")
 }
-r <- run_child("00c", "00c_check_synthetic_panel.R")
-if (r$status != 0) { show_tail(r$console); stop("00c_check_synthetic_panel.R failed.", call. = FALSE) }
-cat("  schema and invariant checks passed (run_logs/run_all_00c_console.log)\n")
+r <- run_child("00c", file.path(REPO_ROOT, "tests", "00c_check_synthetic_panel.R"))
+if (r$status != 0) { show_tail(r$console); stop("tests/00c_check_synthetic_panel.R failed.", call. = FALSE) }
+cat("  schema and invariant checks passed (R/run_logs/run_all_00c_console.log)\n")
 
 # The stage table, in the order of FINAL_PASS.R and the post-pass stages.
 # FINAL_PASS.R draws the figures and tables before robust, referee8 and 06,
@@ -200,11 +209,11 @@ print(out, row.names = FALSE)
 utils::write.csv(out, file.path(LOGS, paste0("run_all_", format(Sys.time(), "%Y%m%d_%H%M%S"),
                                              ".csv")), row.names = FALSE)
 # The contract writes figures beside the manuscript, in
-# els-cas-templates/figures/, and table fragments to output/tables/, which
-# paper_tables.R copies to els-cas-templates/tables/.
+# R/els-cas-templates/figures/, and table fragments to R/output/tables/,
+# which paper_tables.R copies to R/els-cas-templates/tables/.
 figs <- list.files(file.path("els-cas-templates", "figures"), pattern = "\\.(pdf|png)$")
 tabs <- list.files(file.path("output", "tables"), pattern = "\\.tex$")
-cat(sprintf("\nFigures in els-cas-templates/figures/: %d   Table fragments in output/tables/: %d\n",
+cat(sprintf("\nFigures in R/els-cas-templates/figures/: %d   Table fragments in R/output/tables/: %d\n",
             length(figs), length(tabs)))
 cat("Every number these files hold comes from synthetic data and must not be reported.\n")
 if (any(out$status %in% c("ERROR", "absent"))) {

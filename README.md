@@ -19,16 +19,16 @@ The code builds the analysis panel from the raw HILDA release and reproduces
 the paper's exhibits. It is written in R. One script, `run_all.R`, runs the
 pipeline in one of two modes.
 
-**Synthetic mode** is the default. `00b_make_synthetic_hilda.R` writes a
+**Synthetic mode** is the default. `R/00b_make_synthetic_hilda.R` writes a
 synthetic panel with the same columns, types, factor levels and panel
-attributes as the real one, and `00c_check_synthetic_panel.R` checks it. The
-analysis stages then run on it. This mode needs no access to HILDA. Use it to
+attributes as the real one, and `tests/00c_check_synthetic_panel.R` checks it.
+The analysis stages then run on it. This mode needs no access to HILDA. Use it to
 check that the code installs and runs, to read the pipeline, or to develop
 against it. **Results in this mode are illustrative and do not reproduce the
 paper's estimates.**
 
 **Real mode** (`DATA_MODE=real`) builds the panel from the restricted HILDA
-release with `LOADING_ND3_v3.R` and runs the authors' verified sequence. Only
+release with `R/LOADING_ND3_v3.R` and runs the authors' verified sequence. Only
 approved HILDA users can run it (Section 2).
 
 ### 1a. Running the pipeline
@@ -44,7 +44,7 @@ In synthetic mode, `run_all.R`:
 
 1. installs and version-checks the packages (`PACKAGES.R`);
 2. reads the settings (`config.R`), which point the pipeline's contract at
-   this folder;
+   `R/`, the folder every stage runs from;
 3. builds the synthetic panel if it is not on disk (`00b`), then checks it
    (`00c`);
 4. runs the analysis stages in the order of the authors' build, each in its
@@ -81,7 +81,7 @@ Useful settings, all read from the environment:
 | `SYNTH_REBUILD` | unset | `1` rebuilds the synthetic panel and removes the previous synthetic run's outputs |
 | `SYNTH_FULL` | unset | `1` runs the slow steps at published settings |
 | `SYNTH_KEEP_GOING` | unset | `1` runs every stage after one fails |
-| `HILDA_ROOT` | this folder | the root the pipeline's contract resolves; if set, it must name this folder, or `config.R` stops |
+| `HILDA_ROOT` | `R/` | the root the pipeline's contract resolves; if set, it must name `R/`, or `config.R` stops |
 | `HILDA_DATA_DIR` | `data/raw` | the raw release (real mode) |
 | `MASTER_HH_THREADS` | up to 4 | threads for fixest, ranger and grf |
 
@@ -195,19 +195,20 @@ The HILDA release is the only source dataset. No other external data are used.
 ## 3. Dataset list
 
 The loader (real mode) or the generator (synthetic mode) writes the analysis
-panels to the repository root. The pipeline then writes derived files under
-`output/`, `handoff/` and `run_logs/`. All of them are gitignored.
+panels to `R/`, the folder the pipeline runs from. The pipeline then writes
+derived files under `R/output/`, `R/handoff/` and `R/run_logs/`. All of them
+are gitignored.
 
 | File | Written by | Used by |
 | --- | --- | --- |
-| `hilda_panel_data_W12_W24_slim.rds` | `LOADING_ND3_v3.R` / `00b_make_synthetic_hilda.R` | every design |
-| `hilda_panel_data_extended.rds` | `LOADING_ND3_v3.R` / `00b_make_synthetic_hilda.R` | the wave 15 to 24 subset |
-| `output/fte_experience/panel_fte_addendum.rds` | `02fte_experience.R` | 03c, the experience arms |
-| `handoff/*.rds` | the contract's registry | later stages: the frame, the event sample, the ledger |
-| `output/designs/training_ledger.csv` | 03a, 03b, 03c, 04 | the ledger table |
-| `output/results/cs_event_study_results.rds` | `CS_event_study.R`, through the master | the wage path, 05, the tables |
-| `output/diagnostics/*.csv` | robust, referee8, 06, screen | the appendix tables and macros |
-| `output/numbers/*.csv` | the master, 05 and other stages | `paper_numbers.tex`, the numbers the text quotes |
+| `R/hilda_panel_data_W12_W24_slim.rds` | `LOADING_ND3_v3.R` / `00b_make_synthetic_hilda.R` | every design |
+| `R/hilda_panel_data_extended.rds` | `LOADING_ND3_v3.R` / `00b_make_synthetic_hilda.R` | the wave 15 to 24 subset |
+| `R/output/fte_experience/panel_fte_addendum.rds` | `02fte_experience.R` | 03c, the experience arms |
+| `R/handoff/*.rds` | the contract's registry | later stages: the frame, the event sample, the ledger |
+| `R/output/designs/training_ledger.csv` | 03a, 03b, 03c, 04 | the ledger table |
+| `R/output/results/cs_event_study_results.rds` | `CS_event_study.R`, through the master | the wage path, 05, the tables |
+| `R/output/diagnostics/*.csv` | robust, referee8, 06, screen | the appendix tables and macros |
+| `R/output/numbers/*.csv` | the master, 05 and other stages | `paper_numbers.tex`, the numbers the text quotes |
 
 ---
 
@@ -261,94 +262,108 @@ on larger folds, so expect roughly an hour and a quarter for 03c alone.
 
 ---
 
-## 5. Description of programs
+## 5. Description of programs and code
 
-Run everything from the repository root: the scripts read and write through
-the contract's paths, which `config.R` points at this folder.
+The entry point and the settings live at the repository root, and the
+pipeline lives in `R/`. `run_all.R` runs every stage with `R/` as the working
+directory. The authors' scripts source one another by bare file name and
+write their outputs beside them, as they did in the authors' project folder.
+So during a run the panels, `output/`, `handoff/`, `run_logs/` and
+`els-cas-templates/` all appear under `R/`, and `.gitignore` keeps them out of
+the repository. The order of the stages matters: each stage reads files that
+earlier stages wrote, through the contract's handoff registry.
 
-### 5.1 Package files
+```
+repo-root/
+├── README.md                          this file
+├── LICENSE                            BSD-3-Clause
+├── .gitignore                         keeps data, panels and outputs out of the repository
+├── run_all.R                          entry point; runs synthetic or real mode
+├── config.R                           data mode, folders and synthetic-run options
+├── PACKAGES.R                         installs and version-checks the R packages
+├── data/
+│   └── raw/                           empty; HILDA General Release 24 goes here (real mode)
+├── tests/
+│   └── 00c_check_synthetic_panel.R    checks the synthetic panel: schema, invariants and
+│                                      planted effects
+└── R/                                 the pipeline; every stage runs from here
+    │   # the analysis panels
+    ├── 00b_make_synthetic_hilda.R     synthetic stand-in for the two panels (synthetic mode)
+    ├── LOADING_ND3_v3.R               raw HILDA release to the two panels (real mode)
+    │   # shared code, sourced by the stages
+    ├── 00_contract.R                  paths, the handoff registry and shared helpers
+    ├── 00compat.R                     guards for the restrictions the panel carries
+    ├── paths.R                        older path settings, kept as a fallback
+    ├── 03_logging.R                   prelude of the 03 modules
+    ├── 03_common.R                    frame and designs shared by the 03 modules
+    ├── 03_finish.R                    finisher of the 03 modules; merges the ledger
+    ├── sa_common_weights.R            women-minus-men contrasts on common cohort weights
+    ├── paper_numbers.R                the registry behind the numbers the text quotes
+    ├── paper_numbers_derived.R        numbers the text derives from the registry
+    │   # the analysis stages, in run order
+    ├── 02fte_experience.R             02: full-time-equivalent experience addendum
+    ├── 03a_design_audit.R             03a: designs T0b, T1, T2, T4 to T7, T9 and T12
+    ├── 03b_fee_descriptives.R         03b: designs T3, T3b and T3c; financing contrast, fees
+    ├── 03c_experience_units.R         03c: design T8, the twenty DML arms
+    ├── 04financing_space.R            04: designs T10 and T11; financing states, dollars
+    ├── MASTER_training_y.R            master: event studies, wage path, cross-partial
+    │                                  profile; sources the four modules below
+    ├── CS_event_study.R               the Sun and Abraham wage path
+    ├── training_event_study.R         the training event studies
+    ├── training_funding_divergence.R  the funding contrast
+    ├── MASTER_paper_numbers.R         registers the master's numbers
+    ├── REFEREE_RUN.R                  referee: checks A to G, the six-state bootstrap
+    ├── 05_review_response.R           05: post-hoc analyses and the Appendix I tables
+    ├── w24_calendar_check.R           the Wave 24 leave check (real mode)
+    ├── Pre_analysis_diagnostics2.R    pre_analysis: headline_figures.csv for the tables
+    ├── robust_30_49.R                 robust: the conventional 30 to 49 age window
+    ├── referee8_couple_clustering.R   referee8: couple-robust standard errors
+    ├── 06_revision_inference.R        06: couple block bootstrap, event-study contrast
+    ├── screen_audit.R                 screen: estimates with and without the experience screen
+    ├── RUN_FIGURES_PAPER.R            figures: every figure
+    ├── paper_tables.R                 tables: every table fragment and the macro files
+    │   # the authors' drivers (real mode)
+    ├── FINAL_PASS.R                   the full build
+    ├── RUN_ALL.R                      runs named stages; checks each log against the
+    │                                  verified run
+    │   # checks against the manuscript (real mode)
+    ├── reconcile_pre_birth_base.R     reconciles the pre-birth base the text quotes
+    ├── RECONCILE_COUNTS.R             asserts the counts the text quotes
+    ├── verify_manuscript_numbers.R    checks every number in the manuscript
+    ├── vm_settings.R                  the verifier's accepted values
+    └── vm_guards.R                    the verifier's guards
+```
 
-| File | Role |
-| --- | --- |
-| `run_all.R` | entry point; runs synthetic or real mode |
-| `config.R` | data mode, project root, raw-data folder, synthetic options |
-| `PACKAGES.R` | installs and version-checks the dependencies |
-| `00b_make_synthetic_hilda.R` | writes the synthetic panels (Section 1b) |
-| `00c_check_synthetic_panel.R` | checks the synthetic panel: schema, invariants, planted effects |
-| `data/raw/README.md` | where real mode looks for the raw release |
+`run_all.R` sources `PACKAGES.R` and `config.R`, then moves into `R/`. In
+synthetic mode it builds the panel with `00b_make_synthetic_hilda.R` if the
+panel is not on disk, and checks it with `tests/00c_check_synthetic_panel.R`.
+It then runs each stage in its own R process, in the order of the tree: 02,
+03a, 03b, 03c, 04, master, referee, 05, pre_analysis, robust, referee8, 06,
+screen, figures and tables. It leaves out the loader, the Wave 24 check and
+the checks against the manuscript, because they need the raw release or the
+manuscript. In real mode it runs the loader through `RUN_ALL.R` if the panel
+is not on disk, then `FINAL_PASS.R`, then `RUN_ALL.R` for robust, referee8,
+06, screen, figures, tables, verify and counts.
+
+Several files are modules that other scripts source rather than stages that
+run on their own. Every stage loads `00_contract.R`; the three 03 stages
+do so through `03_logging.R`, and they also source `03_common.R` and
+`03_finish.R`. The master sources
+`CS_event_study.R`, `training_event_study.R`, `training_funding_divergence.R`
+and `MASTER_paper_numbers.R`. `sa_common_weights.R` is sourced by
+`CS_event_study.R`, the two training modules, 05, 06, robust and screen.
+`paper_numbers.R` is sourced by 03a, the master, the referee stage, 05 and the
+tables, and it reads `paper_numbers_derived.R`.
 
 `00c` tests the generator, not the paper. Its part C fits simplified versions
 of the paper's equations (the static difference-in-differences, the triple
 difference, the Sun and Abraham average with common cohort weights, and the
 wage windows) only to confirm that the designs recover the planted effects.
 
-### 5.2 Pipeline
+The scripts keep the authors' working file names, so the files in `R/` match
+those in the authors' project folder one for one.
 
-**Sample construction**
-
-| File | Role |
-| --- | --- |
-| `LOADING_ND3_v3.R` | raw release to the analysis panels (real mode); reads `HILDA_DATA_DIR` |
-
-**Shared infrastructure, sourced by the stages**
-
-| File | Role |
-| --- | --- |
-| `00_contract.R` | paths, the handoff registry and shared helpers |
-| `00compat.R` | estimation-stage guards for the restrictions the panel carries |
-| `paths.R` | project and manuscript folders for the figure and table writers |
-| `03_logging.R`, `03_common.R`, `03_finish.R` | prelude and finisher of the 03 modules |
-
-**Analysis stages, in run order**
-
-| File | Role |
-| --- | --- |
-| `02fte_experience.R` | full-time-equivalent experience addendum |
-| `03a_design_audit.R` | designs T0b, T1, T2, T4 to T7, T9 and T12 |
-| `03b_fee_descriptives.R` | designs T3, T3b and T3c: the financing contrast and the fee margin |
-| `03c_experience_units.R` | design T8: the twenty DML arms on experience units |
-| `04financing_space.R` | designs T10 and T11: the financing states and their dollar value |
-| `MASTER_training_y.R` | the master: event studies, the wage path, the cross-partial profile |
-| `CS_event_study.R` | the Sun and Abraham wage path; sourced by the master |
-| `training_event_study.R`, `training_funding_divergence.R` | training event studies and the funding contrast; sourced by the master |
-| `sa_common_weights.R` | women-minus-men Sun and Abraham contrasts on common cohort weights |
-| `REFEREE_RUN.R` | the referee checks, blocks A to G, including the bootstrap behind the six-state decomposition |
-| `05_review_response.R` | the post-hoc analyses and the Appendix I tables |
-| `w24_calendar_check.R` | the Wave 24 leave check; reads the raw Wave 24 file (real mode) |
-| `Pre_analysis_diagnostics2.R` | writes `headline_figures.csv`, which the tables read |
-| `robust_30_49.R` | estimates on the conventional 30 to 49 age window |
-| `referee8_couple_clustering.R` | couple-robust standard errors |
-| `06_revision_inference.R` | couple block bootstrap and the event-study financing contrast |
-| `screen_audit.R` | where the experience screen bites, and the estimates with and without it |
-| `RUN_FIGURES_PAPER.R` | every figure |
-| `paper_tables.R` | every table fragment and the macro files |
-| `paper_numbers.R`, `paper_numbers_derived.R`, `MASTER_paper_numbers.R` | the registry behind the numbers the text quotes |
-
-**Drivers**
-
-| File | Role |
-| --- | --- |
-| `FINAL_PASS.R` | the authors' full build (real mode) |
-| `RUN_ALL.R` | runs named stages, each checked against the verified run (real mode) |
-
-**Checks against the manuscript (real mode)**
-
-| File | Role |
-| --- | --- |
-| `verify_manuscript_numbers.R`, `vm_settings.R`, `vm_guards.R` | check every number in the manuscript against the outputs |
-| `check9_sources.R`, `find_number_sources.R` | trace typed numbers to the file that holds them |
-| `reconcile_pre_birth_base.R`, `RECONCILE_COUNTS.R` | reconcile the counts the text quotes |
-
-**Diagnostics and development notes, not part of a run**
-
-| File | Role |
-| --- | --- |
-| `compare_runs.R` | compares a run without the experience screen with an archived screened run |
-| `map_script_outputs.R` | maps each script to the files it reads and writes |
-| `own_time_base.R` | the base of the own-time-alone cell |
-| `sa_patches.R`, `paper_tables_revision_block.R` | edit notes for the common-weight and revision changes |
-
-### 5.3 Edits made for this package
+### 5.1 Edits made for this package
 
 Three of the authors' scripts carry a small edit for this package. Each edit
 is marked `v-replication, 21 October 2026` in the file, and none of them
@@ -359,6 +374,14 @@ changes a result on the real data.
 | `LOADING_ND3_v3.R` | reads the raw-data folder from `HILDA_DATA_DIR` when it is set |
 | `CS_event_study.R` | accepts the flagged synthetic panel, which is smaller than the script's floor of 15,000 persons |
 | `paper_numbers.R` | on synthetic data, a phrase such as "seven-tenths" that no longer fits its number gives a warning instead of a stop |
+
+One further edit corrects a coding error found while testing this package. It
+is marked `v-jobchange, 22 October 2026`.
+
+| File | Edit |
+| --- | --- |
+| `REFEREE_RUN.R` | block F counted every answered job-change item as a job change, because the loader codes the item 1 = no and 2 = yes; it now counts only a 2. This changes the job-change arm in Online Appendix F.1 |
+
 
 ---
 
@@ -371,13 +394,13 @@ Rscript run_all.R
 ```
 
 This installs the dependencies, builds and checks the synthetic panel and runs
-the stages. The pipeline's contract decides where results go. Figures go to
-`els-cas-templates/figures/`, the folder the manuscript reads. Table fragments
-go to `output/tables/`, and `paper_tables.R` copies each finished fragment to
-`els-cas-templates/tables/`. Estimates and diagnostics go to `output/designs/`,
-`output/results/` and `output/diagnostics/`. The results do not match the
-paper. The summary at the end lists each stage as ok, ERROR or absent, and
-`run_logs/` holds each stage's log.
+the stages. The pipeline's contract decides where results go, all under `R/`.
+Figures go to `R/els-cas-templates/figures/`, the folder the manuscript reads.
+Table fragments go to `R/output/tables/`, and `paper_tables.R` copies each
+finished fragment to `R/els-cas-templates/tables/`. Estimates and diagnostics
+go to `R/output/designs/`, `R/output/results/` and `R/output/diagnostics/`.
+The results do not match the paper. The summary at the end lists each stage as
+ok, ERROR or absent, and `R/run_logs/` holds each stage's log.
 
 ### Real mode (reproduces the published results)
 
@@ -399,19 +422,25 @@ paper. The summary at the end lists each stage as ok, ERROR or absent, and
 3. Three steps compare the results with the manuscript's text: the verifier
    step in `FINAL_PASS.R` and the verify and counts stages. They read the
    LaTeX source, which this repository does not hold, so put
-   `Motherhood_training_v5.tex` in `els-cas-templates/` before the run. The
+   `Motherhood_training_v5.tex` in `R/els-cas-templates/` before the run. The
    figures and tables do not need it.
 
-To run one stage, use the authors' driver from R, for example
-`RUN_STAGES <- c("03a", "04"); source("RUN_ALL.R")`.
+To run one stage, use the authors' driver. In R, from the repository root:
+
+```r
+source("config.R")      # points the contract at R/
+setwd(PIPELINE_DIR)     # R/, where every stage runs
+RUN_STAGES <- c("03a", "04"); source("RUN_ALL.R")
+```
 
 ---
 
 ## 7. Exhibits and the code that produces them
 
-`paper_tables.R` writes every table fragment the manuscript inputs, and
-`RUN_FIGURES_PAPER.R` writes every figure. Each reads results that an earlier
-stage writes, named below.
+`paper_tables.R` writes every table fragment the manuscript inputs, to
+`R/output/tables/` and then `R/els-cas-templates/tables/`, and
+`RUN_FIGURES_PAPER.R` writes every figure, to `R/els-cas-templates/figures/`.
+Each reads results that an earlier stage writes, named below.
 
 ### Tables
 

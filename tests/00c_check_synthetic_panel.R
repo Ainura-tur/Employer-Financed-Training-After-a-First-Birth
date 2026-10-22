@@ -17,9 +17,11 @@
 #      builds in. They are NOT the pipeline's code, and their numbers are
 #      synthetic and must not be reported.
 #
-# Usage, from the repository root (after 00b_make_synthetic_hilda.R):
-#   Rscript 00c_check_synthetic_panel.R
-# It stops with an error if any check in A or B fails.
+# run_all.R runs it from R/, after 00b_make_synthetic_hilda.R. To run it
+# alone, from R/:
+#   Rscript ../tests/00c_check_synthetic_panel.R
+# It reads the panel and the generator from HILDA_ROOT when set, else from
+# the working directory. It stops with an error if any check in A or B fails.
 # =============================================================================
 
 suppressPackageStartupMessages({
