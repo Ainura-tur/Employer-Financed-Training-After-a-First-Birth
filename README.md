@@ -417,6 +417,14 @@ without the experience screen, on 22 October 2026. They change no result.
 | `v-rebaseline-unscreened` | six checks on 02, 03a, 03b and 03c still held values from the screened sample, so a full real pass stopped and asked for a re-baseline. Each check now carries the value from that pass's logs beside the screened one, which `TD_SCREEN=on` still uses, and `EXPECTED_TO_MOVE` is empty |
 | `v-runtime2` | each stage's declared minutes are the times measured on that pass, rounded up: 03c 110, master 11, 06 8, referee 5 and every other stage 1. Its notes and console message give about two and a half hours for its full pass |
 
+One edit makes the introduction to Online Appendix I describe post-hoc
+analyses as the paper does. It is marked `v-posthoc-ledger, 23 October 2026`
+and changes no result.
+
+| File | Edit |
+| --- | --- |
+| `05_review_response.R` | the introduction that block R16 writes for Online Appendix I says the post-hoc analyses carry no designation. It no longer says that they are not in the original specification ledger |
+
 ---
 
 ## 6. Instructions to replicators

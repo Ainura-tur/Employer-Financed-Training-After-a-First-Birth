@@ -1,5 +1,6 @@
 # =============================================================================
 # v-usspell, 22 October 2026: US spelling in the R16 table notes (fix_us_spelling_05.R).
+# v-posthoc-ledger, 23 October 2026: Appendix I describes post-hoc analyses as the paper does (fix_posthoc_wording_05.R).
 # v-notes-trwin13, 19 October: R16 notes for Tables I.1 and I.3 (apply_notes_trwin13.R).
 # 05_review_response.R  -  estimates requested by the pre-submission review
 #
@@ -2723,9 +2724,11 @@ rr_block("R16: appendix tables for the post-hoc analyses", local({
   written <- c(intersect(order, written), setdiff(written, order))
   if (length(written)) {
     sec <- c("\\section{I. Post-Hoc Analyses}", "\\label{sec:app_posthoc}",
-             paste0("The tables in this appendix report post-hoc analyses, which are not in the original specification ledger. ",
-                    "None carries a designation in the ledger, ",
-                    "and Section~\\ref{sec:disc_limits} states their limits."), "",
+             # v-posthoc-ledger, 23 October 2026. The paper describes every post-hoc
+             # analysis one way: it carries no designation. Most, these among them,
+             # are not in the ledger file, so the sentence no longer says where they are.
+             paste0("The tables in this appendix report post-hoc analyses, which carry no designation. ",
+                    "Section~\\ref{sec:disc_limits} states their limits."), "",
              paste0("\\input{tables/", sub("\\.tex$", "", written), "}"))
     writeLines(sec, file.path(tdir, "PH_appendix_section.tex"))
   }
